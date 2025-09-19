@@ -13,7 +13,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const { message } = await request.json();
+    const { message, sessionId } = await request.json();
 
     if (!message) {
       return NextResponse.json(
@@ -22,22 +22,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Create a unique session ID based on user email/id
-    const customSessionId = `user_${session.user.email?.replace('@', '_').replace('.', '_')}_${new Date().toISOString().split('T')[0]}`;
+    // Use provided sessionId or create a default one
+    const customSessionId = sessionId || `user_${session.user.email?.replace('@', '_').replace(/\./g, '_')}_${new Date().toISOString().split('T')[0]}`;
 
-    const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL;
+    const N8N_WEBHOOK_CHAT = process.env.N8N_WEBHOOK_CHAT;
 
-    if (!N8N_WEBHOOK_URL) {
+    if (!N8N_WEBHOOK_CHAT) {
       // For demo purposes, return a mock response
       return NextResponse.json({
-        response: "This is a demo response. Please set up your N8N_WEBHOOK_URL environment variable to connect to your n8n workflow.",
+        response: "This is a demo response. Please set up your N8N_WEBHOOK_CHAT environment variable to connect to your n8n workflow.",
         timestamp: new Date().toISOString(),
         sessionId: customSessionId,
       });
     }
 
     // Send message to n8n workflow with custom session ID
-    const response = await fetch(N8N_WEBHOOK_URL, {
+    const response = await fetch(N8N_WEBHOOK_CHAT, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

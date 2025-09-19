@@ -24,7 +24,7 @@ export default function SignIn() {
         <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-zinc-700">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-violet-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <Bot className="w-8 h-8 text-white" />
             </div>
             <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100 mb-2">
@@ -71,11 +71,11 @@ export default function SignIn() {
           {/* Features */}
           <div className="mt-8 space-y-3">
             <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-zinc-300">
-              <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
               <span>RAG-powered responses</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-zinc-300">
-              <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+              <div className="w-2 h-2 bg-violet-500 rounded-full"></div>
               <span>Real-time data integration</span>
             </div>
             <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-zinc-300">

@@ -9,14 +9,22 @@ export interface Message {
   id: string;
   content: string;
   role: 'user' | 'assistant';
-  timestamp: Date;
+  timestamp: Date | string;
 }
 
 interface ChatInterfaceProps {
-  onSendMessage?: (message: string) => Promise<void>;
+  onSendMessage?: (message: string, sessionId: string) => Promise<void>;
+  currentSessionId?: string;
+  onLoadChatHistory?: (sessionId: string) => void;
+  onNewChat?: () => void;
 }
 
-export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
+export default function ChatInterface({ 
+  onSendMessage, 
+  currentSessionId, 
+  onLoadChatHistory,
+  onNewChat 
+}: ChatInterfaceProps) {
   const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([
     {
@@ -28,6 +36,7 @@ export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -39,8 +48,73 @@ export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
     scrollToBottom();
   }, [messages]);
 
+  // Load chat history when session changes
+  useEffect(() => {
+    if (currentSessionId && onLoadChatHistory) {
+      loadChatHistory(currentSessionId);
+    }
+  }, [currentSessionId]);
+
+  const loadChatHistory = async (sessionId: string) => {
+    setIsLoadingHistory(true);
+    try {
+      const response = await fetch(`/api/chat-history?sessionId=${sessionId}`);
+      
+      if (response.ok) {
+        const data = await response.json();
+        if (data.success && data.messages && data.messages.length > 0) {
+          // Ensure timestamps are Date objects
+          const messagesWithDates = data.messages.map((msg: any) => ({
+            ...msg,
+            timestamp: new Date(msg.timestamp || Date.now()),
+          }));
+          setMessages(messagesWithDates);
+        } else {
+          // If no history found, start with welcome message
+          setMessages([
+            {
+              id: '1',
+              content: "Hello! I'm your AI assistant powered by RAG and Gemini. I can help answer questions using my knowledge base, fetch real-time data, or provide general assistance. How can I help you today?",
+              role: 'assistant',
+              timestamp: new Date(),
+            },
+          ]);
+        }
+      } else {
+        console.error('Failed to load chat history');
+        // Keep current messages if loading fails
+      }
+    } catch (error) {
+      console.error('Error loading chat history:', error);
+      // Keep current messages if loading fails
+    } finally {
+      setIsLoadingHistory(false);
+    }
+  };
+
+  const resetMessages = () => {
+    setMessages([
+      {
+        id: '1',
+        content: "Hello! I'm your AI assistant powered by RAG and Gemini. I can help answer questions using my knowledge base, fetch real-time data, or provide general assistance. How can I help you today?",
+        role: 'assistant',
+        timestamp: new Date(),
+      },
+    ]);
+    if (onNewChat) {
+      onNewChat();
+    }
+  };
+
+  // Expose resetMessages function for new chat functionality
+  useEffect(() => {
+    if (onNewChat) {
+      (window as any).resetChatMessages = resetMessages;
+    }
+  }, [onNewChat]);
+
   const handleSendMessage = async () => {
-    if (!inputValue.trim() || isLoading) return;
+    if (!inputValue.trim() || isLoading || !currentSessionId) return;
 
     const userMessage: Message = {
       id: Date.now().toString(),
@@ -50,18 +124,26 @@ export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
     };
 
     setMessages(prev => [...prev, userMessage]);
+    const messageToSend = inputValue.trim();
     setInputValue('');
     setIsLoading(true);
 
     try {
       if (onSendMessage) {
-        // Call the API to send message to n8n
+        // Call the parent component's send message function with sessionId
+        await onSendMessage(messageToSend, currentSessionId);
+        
+        // The response will be handled by the parent component
+        // and passed back through props or state management
         const response = await fetch('/api/chat', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({ message: inputValue.trim() }),
+          body: JSON.stringify({ 
+            message: messageToSend,
+            sessionId: currentSessionId 
+          }),
         });
 
         if (!response.ok) {
@@ -78,6 +160,11 @@ export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
         };
         
         setMessages(prev => [...prev, assistantMessage]);
+        
+        // Add session to sidebar when first message is sent
+        if ((window as any).addSessionToSideNav) {
+          (window as any).addSessionToSideNav(currentSessionId, messageToSend);
+        }
       } else {
         // Simulate API response for demo
         setTimeout(() => {
@@ -130,7 +217,7 @@ export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
       <div className="bg-white/80 dark:bg-zinc-800/95 backdrop-blur-sm border-b border-gray-200 dark:border-zinc-700 p-4 shadow-sm">
         <div className="max-w-4xl mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-violet-600 rounded-full flex items-center justify-center">
               <Bot className="w-6 h-6 text-white" />
             </div>
             <div>
@@ -178,7 +265,15 @@ export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
       {/* Messages */}
       <div className="flex-1 overflow-y-auto p-4">
         <div className="max-w-4xl mx-auto space-y-6">
-          {messages.map((message) => (
+          {isLoadingHistory ? (
+            <div className="flex justify-center items-center py-8">
+              <div className="flex items-center gap-3">
+                <Loader2 className="w-5 h-5 animate-spin text-violet-500" />
+                <span className="text-gray-600 dark:text-zinc-400">Loading chat history...</span>
+              </div>
+            </div>
+          ) : (
+            messages.map((message) => (
             <div
               key={message.id}
               className={`flex gap-3 ${
@@ -186,7 +281,7 @@ export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
               }`}
             >
               {message.role === 'assistant' && (
-                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+                <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-violet-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                   <Bot className="w-4 h-4 text-white" />
                 </div>
               )}
@@ -194,7 +289,7 @@ export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
               <div
                 className={`max-w-[70%] rounded-2xl px-4 py-3 ${
                   message.role === 'user'
-                    ? 'bg-blue-500 text-white ml-auto'
+                    ? 'bg-violet-500 text-white ml-auto'
                     : 'bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-100 shadow-sm border border-gray-200 dark:border-zinc-700'
                 }`}
               >
@@ -204,14 +299,20 @@ export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
                 <p
                   className={`text-xs mt-2 ${
                     message.role === 'user'
-                      ? 'text-blue-100'
+                      ? 'text-violet-100'
                       : 'text-gray-400 dark:text-zinc-400'
                   }`}
                 >
-                  {message.timestamp.toLocaleTimeString([], {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {message.timestamp instanceof Date 
+                    ? message.timestamp.toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                    : new Date(message.timestamp).toLocaleTimeString([], {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                      })
+                  }
                 </p>
               </div>
 
@@ -233,11 +334,12 @@ export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
                 </div>
               )}
             </div>
-          ))}
+            ))
+          )}
 
           {isLoading && (
             <div className="flex gap-3 justify-start">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-violet-600 rounded-full flex items-center justify-center flex-shrink-0 mt-1">
                 <Bot className="w-4 h-4 text-white" />
               </div>
               <div className="bg-white dark:bg-zinc-800 rounded-2xl px-4 py-3 shadow-sm border border-gray-200 dark:border-zinc-700">
@@ -258,7 +360,7 @@ export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
       {/* Input */}
       <div className="bg-white/80 dark:bg-zinc-800/95 backdrop-blur-sm border-t border-gray-200 dark:border-zinc-700 p-4">
         <div className="max-w-4xl mx-auto">
-          <div className="relative bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm focus-within:ring-2 focus-within:ring-blue-500 focus-within:border-transparent">
+          <div className="relative bg-white dark:bg-zinc-800 rounded-2xl border border-gray-200 dark:border-zinc-700 shadow-sm focus-within:ring-2 focus-within:ring-violet-500 focus-within:border-transparent">
             <textarea
               ref={textareaRef}
               value={inputValue}
@@ -271,7 +373,7 @@ export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
             <button
               onClick={handleSendMessage}
               disabled={!inputValue.trim() || isLoading}
-              className="absolute bottom-3 right-3 w-8 h-8 bg-blue-500 hover:bg-blue-600 disabled:bg-gray-300 dark:disabled:bg-zinc-600 rounded-full flex items-center justify-center transition-colors duration-200"
+              className="absolute bottom-3 right-3 w-8 h-8 bg-violet-500 hover:bg-violet-600 disabled:bg-gray-300 dark:disabled:bg-zinc-600 rounded-full flex items-center justify-center transition-colors duration-200"
             >
               <Send className="w-4 h-4 text-white" />
             </button>
