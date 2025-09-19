@@ -4,6 +4,7 @@ import { useState, useRef, useEffect } from 'react';
 import { Send, Bot, User, Loader2, LogOut } from 'lucide-react';
 import { useSession, signOut } from 'next-auth/react';
 import Image from 'next/image';
+import MarkdownRenderer from './MarkdownRenderer';
 
 export interface Message {
   id: string;
@@ -293,9 +294,13 @@ export default function ChatInterface({
                     : 'bg-white dark:bg-zinc-800 text-gray-800 dark:text-zinc-100 shadow-sm border border-gray-200 dark:border-zinc-700'
                 }`}
               >
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">
-                  {message.content}
-                </p>
+                {message.role === 'user' ? (
+                  <p className="text-sm leading-relaxed whitespace-pre-wrap text-white">
+                    {message.content}
+                  </p>
+                ) : (
+                  <MarkdownRenderer content={message.content} />
+                )}
                 <p
                   className={`text-xs mt-2 ${
                     message.role === 'user'
