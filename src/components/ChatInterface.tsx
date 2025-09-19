@@ -1,7 +1,9 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { Send, Bot, User, Loader2 } from 'lucide-react';
+import { Send, Bot, User, Loader2, LogOut } from 'lucide-react';
+import { useSession, signOut } from 'next-auth/react';
+import Image from 'next/image';
 
 export interface Message {
   id: string;
@@ -15,6 +17,7 @@ interface ChatInterfaceProps {
 }
 
 export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
+  const { data: session } = useSession();
   const [messages, setMessages] = useState<Message[]>([
     {
       id: '1',
@@ -125,18 +128,50 @@ export default function ChatInterface({ onSendMessage }: ChatInterfaceProps) {
     <div className="flex flex-col h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800">
       {/* Header */}
       <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm border-b border-slate-200 dark:border-slate-700 p-4 shadow-sm">
-        <div className="max-w-4xl mx-auto flex items-center gap-3">
-          <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
-            <Bot className="w-6 h-6 text-white" />
+        <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+              <Bot className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
+                AI Assistant
+              </h1>
+              <p className="text-sm text-slate-500 dark:text-slate-400">
+                Powered by RAG & Gemini
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">
-              AI Assistant
-            </h1>
-            <p className="text-sm text-slate-500 dark:text-slate-400">
-              Powered by RAG & Gemini
-            </p>
-          </div>
+          
+          {/* User Info & Sign Out */}
+          {session?.user && (
+            <div className="flex items-center gap-3">
+              <div className="text-right">
+                <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
+                  {session.user.name}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  {session.user.email}
+                </p>
+              </div>
+              {session.user.image && (
+                <Image
+                  src={session.user.image}
+                  alt={session.user.name || 'User'}
+                  width={32}
+                  height={32}
+                  className="w-8 h-8 rounded-full"
+                />
+              )}
+              <button
+                onClick={() => signOut()}
+                className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-full transition-colors duration-200"
+                title="Sign out"
+              >
+                <LogOut className="w-4 h-4 text-slate-600 dark:text-slate-400" />
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
