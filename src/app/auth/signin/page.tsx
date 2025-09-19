@@ -19,18 +19,18 @@ export default function SignIn() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 to-gray-100 dark:from-neutral-900 dark:to-zinc-900 flex items-center justify-center p-4">
       <div className="max-w-md w-full">
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl p-8 border border-slate-200 dark:border-slate-700">
+        <div className="bg-white dark:bg-zinc-800 rounded-2xl shadow-xl p-8 border border-gray-200 dark:border-zinc-700">
           {/* Header */}
           <div className="text-center mb-8">
             <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center mx-auto mb-4">
               <Bot className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+            <h1 className="text-2xl font-bold text-gray-800 dark:text-zinc-100 mb-2">
               AI Chatbot Assistant
             </h1>
-            <p className="text-slate-600 dark:text-slate-400">
+            <p className="text-gray-600 dark:text-zinc-300">
               Sign in to access your intelligent AI assistant
             </p>
           </div>
@@ -39,7 +39,7 @@ export default function SignIn() {
           <button
             onClick={handleGoogleSignIn}
             disabled={isLoading}
-            className="w-full bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-xl py-3 px-4 flex items-center justify-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
+            className="w-full bg-white dark:bg-zinc-700 border border-gray-300 dark:border-zinc-600 rounded-xl py-3 px-4 flex items-center justify-center gap-3 hover:bg-gray-50 dark:hover:bg-zinc-600 transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed shadow-sm"
           >
             {isLoading ? (
               <div className="w-5 h-5 border-2 border-slate-300 border-t-slate-600 rounded-full animate-spin" />
@@ -63,22 +63,22 @@ export default function SignIn() {
                 />
               </svg>
             )}
-            <span className="font-medium text-slate-700 dark:text-slate-200">
+            <span className="font-medium text-gray-700 dark:text-zinc-100">
               {isLoading ? "Signing in..." : "Continue with Google"}
             </span>
           </button>
 
           {/* Features */}
           <div className="mt-8 space-y-3">
-            <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+            <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-zinc-300">
               <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
               <span>RAG-powered responses</span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+            <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-zinc-300">
               <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
               <span>Real-time data integration</span>
             </div>
-            <div className="flex items-center gap-3 text-sm text-slate-600 dark:text-slate-400">
+            <div className="flex items-center gap-3 text-sm text-gray-600 dark:text-zinc-300">
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               <span>Secure & private conversations</span>
             </div>
