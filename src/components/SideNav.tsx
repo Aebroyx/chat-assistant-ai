@@ -171,14 +171,14 @@ export default function SideNav({
 
       {/* Sidebar */}
       <div className={`
-        fixed left-0 top-0 h-full bg-gray-50 dark:bg-neutral-900 border-r border-gray-200 dark:border-zinc-800 z-50 
+        fixed left-0 top-0 h-full bg-white/80 dark:bg-zinc-800/95 backdrop-blur-sm border-r border-gray-200 dark:border-zinc-700 z-50 
         transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
         w-80 lg:w-72
       `}>
         {/* Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-zinc-800">
-          <div className="flex items-center justify-between">
+        <div className="h-16 px-4 flex items-center border-b border-gray-200 dark:border-zinc-700">
+          <div className="flex items-center justify-between w-full">
             <div className="flex items-center gap-2">
               <History className="w-5 h-5 text-gray-600 dark:text-zinc-400" />
               <h2 className="font-semibold text-gray-800 dark:text-zinc-100">
@@ -272,7 +272,7 @@ export default function SideNav({
       {!isOpen && (
         <button
           onClick={onToggle}
-          className="fixed left-4 top-4 z-30 p-2 bg-white dark:bg-zinc-800 border border-gray-200 dark:border-zinc-700 rounded-lg shadow-sm hover:shadow-md transition-all"
+          className="fixed left-4 top-4 z-30 p-2 bg-white/80 dark:bg-zinc-800/95 backdrop-blur-sm border border-gray-200 dark:border-zinc-700 rounded-lg shadow-sm hover:shadow-md transition-all"
           title="Open chat history"
         >
           <ChevronRight className="w-4 h-4 text-gray-600 dark:text-zinc-400" />
